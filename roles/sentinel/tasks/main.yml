@@ -1,0 +1,22 @@
+---
+- name: Copy redis rpm
+  copy: src=files/redis-4.0.7-1.x86_64.rpm dest=/tmp
+
+- name: Install redis
+  yum: name=/tmp/redis-4.0.7-1.x86_64.rpm state=installed
+  ignore_errors: yes
+  
+- name: Make data dir
+  file: path=/usr/local/redis/data state=directory
+
+- name: Config sentinel
+  template: src=templates/redis-sentinel.conf.j2 dest=/etc/redis/sentinel.conf
+
+- name: Start sentinel
+  service: name=redis-sentinel state=restarted
+
+- name: Start sentinel
+  service: name=redis-sentinel state=restarted
+  
+- name: Check sentinel up
+  wait_for: port={{sentinel_port}} state=started

@@ -1,0 +1,9 @@
+port {{ sentinel_port }} 
+protected-mode no
+logfile "/var/log/redis/sentinel.log"
+dir "/usr/local/redis/"
+sentinel monitor {{sentinel.master_name}} {{ redis_master_ip }} {{ redis_port }} 2
+sentinel auth-pass {{sentinel.master_name}} {{redis_password}}
+sentinel down-after-milliseconds {{sentinel.master_name}} 30000
+sentinel parallel-syncs {{sentinel.master_name}} 1
+sentinel failover-timeout {{sentinel.master_name}} 1

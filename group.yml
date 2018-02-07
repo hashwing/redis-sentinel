@@ -1,0 +1,7 @@
+- group_name: redis
+  attr:
+    - key: redis_master
+      type: bool
+      default: "no"
+- group_name: sentinel
+  attr: []

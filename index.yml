@@ -1,0 +1,70 @@
+- name: Redis setup
+  hosts: redis
+  gather_facts: no
+  vars:
+    redis_master_ip: ""
+
+  pre_tasks:
+    - name: Include variable file
+      include_vars: "{{item}}"
+      with_items:
+        - "vars/redis.yml"
+
+    - name: Ensure firewalld is installed (CentOS 7).
+      yum: name=firewalld state=installed
+
+    - name: Ensure service firewalld start and auto start while onboot.
+      service: name=firewalld state=started enabled=yes
+
+    - name: Add public port in firewalld.
+      shell: "firewall-cmd --zone=public --add-port={{redis.port}}/tcp --permanent"
+
+    - name: restart firewalld 
+      service: name=firewalld state=restarted
+
+    - name: Generate database server list
+      set_fact: redis_master_ip="{{hostvars[item].ansible_ssh_host }}"
+      when: hostvars[item].redis_master is defined and (hostvars[item].redis_master|bool)
+      with_items: "{{ groups['redis'] }}"
+
+
+  roles:
+    - role: redis
+      redis_port: "{{ redis.port }}"
+      redis_password: "{{ redis.password }}"
+      sentinel_port: "{{ sentinel.port }}"
+
+- name: sentinel setup
+  hosts: sentinel
+  gather_facts: no
+  vars:
+    redis_master_ip: ""
+
+  pre_tasks:
+    - name: Include variable file
+      include_vars: "{{item}}"
+      with_items:
+        - "vars/redis.yml"
+
+    - name: Ensure firewalld is installed (CentOS 7).
+      yum: name=firewalld state=installed
+
+    - name: Ensure service firewalld start and auto start while onboot.
+      service: name=firewalld state=started enabled=yes
+
+    - name: Add public port in firewalld.
+      shell: "firewall-cmd --zone=public --add-port={{sentinel.port}}/tcp --permanent"
+
+    - name: restart firewalld 
+      service: name=firewalld state=restarted
+
+    - name: Generate redis_master_ip
+      set_fact: redis_master_ip="{{hostvars[item].ansible_ssh_host }}"
+      when: hostvars[item].redis_master is defined and (hostvars[item].redis_master|bool)
+      with_items: "{{ groups['redis'] }}"
+      
+  roles:
+    - role: sentinel
+      redis_port: "{{ redis.port }}"
+      redis_password: "{{ redis.password }}"
+      sentinel_port: "{{ sentinel.port }}"

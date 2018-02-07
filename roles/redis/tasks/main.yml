@@ -1,0 +1,36 @@
+- name: Copy redis rpm
+  copy: src=files/redis-4.0.7-1.x86_64.rpm dest=/tmp
+
+- name: Remove redis
+  yum: name=redis state=removed
+  ignore_errors: yes
+
+- name: Install redis
+  yum: name=/tmp/redis-4.0.7-1.x86_64.rpm state=installed
+
+- name: Make data dir
+  file: path=/usr/local/redis/data state=directory
+
+- name: Config master config
+  template: src=templates/redis.master.conf.j2 dest=/etc/redis/redis.conf
+  when: redis_master is defined and (redis_master|bool)
+
+- name: Start master redis
+  service: name=redis state=restarted
+  when: redis_master is defined and (redis_master|bool)
+
+- name: waiting master up
+  wait_for: port={{redis_port}} host={{ansible_ssh_host}} state=started
+  when: redis_master is defined and (redis_master|bool)
+
+- name: Config slaver
+  template: src=templates/redis.slaver.conf.j2 dest=/etc/redis/redis.conf
+  when: redis_master is undefined or (redis_master is defined and not (redis_master|bool))
+
+- name: Start slaver redis
+  service: name=redis state=restarted
+  when: redis_master is undefined or (redis_master is defined and not (redis_master|bool))
+
+- name: waiting slaver up
+  wait_for: port={{redis_port}} host={{ansible_ssh_host}} state=started
+  when: redis_master is undefined or (redis_master is defined and not (redis_master|bool))

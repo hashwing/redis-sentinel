@@ -1,0 +1,16 @@
+#备(Slaver)节点,开启RDB,禁用AOF
+port {{ redis_port }}
+pidfile /var/run/redis.pid
+requirepass {{redis_password}}
+save 900 1
+save 300 10
+save 60 10000
+dir /usr/local/redis/data/
+masterauth {{redis_password}}
+dbfilename dump.rdb
+logfile "/var/log/redis/redis.log"
+
+appendonly no
+appendfilename "appendonly.aof"
+slaveof {{ redis_master_ip }} {{ redis_port }}
+bind {{ansible_ssh_host}}

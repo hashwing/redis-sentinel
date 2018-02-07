@@ -1,0 +1,13 @@
+---
+redis:
+  type: object
+  properties:
+    port:
+      type: string
+sentinel:
+  type: object
+  properties:
+    master_name:
+      type: string
+    port:
+      type: string
