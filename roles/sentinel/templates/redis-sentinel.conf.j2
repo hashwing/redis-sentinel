@@ -6,4 +6,4 @@ sentinel monitor {{sentinel.master_name}} {{ redis_master_ip }} {{ redis_port }}
 sentinel auth-pass {{sentinel.master_name}} {{redis_password}}
 sentinel down-after-milliseconds {{sentinel.master_name}} 30000
 sentinel parallel-syncs {{sentinel.master_name}} 1
-sentinel failover-timeout {{sentinel.master_name}} 1
+sentinel failover-timeout {{sentinel.master_name}} 5000
